@@ -3,17 +3,37 @@
 # stays in wakeup-gesture mode and never emits normal touch events to userspace.
 # Toggling /sys/class/graphics/fb0/blank fires the SCREEN-ON notifier, which
 # calls nvt_ts_resume and switches the driver to normal touch reporting.
+#
+# This only fixes the *first* boot. If the TWRP screen blanks again later
+# (timeout / power button) the driver drops back into gesture mode and stays
+# stuck until reboot — nvt_touch_wake_watch keeps watching and re-fires the
+# same toggle on every subsequent wake, not just at boot.
+#
+# NOTE: do NOT gate either service on "on property:twrp.gui_started=1".
+# This rc file is parsed in the vendor_init domain, which is denied read
+# access to that property (avc: denied { read } for property=twrp.gui_started
+# scontext=u:r:vendor_init:s0 ... permissive=0) — the trigger silently never
+# fires, so a service that only starts on it never starts at all. Both
+# services below are started from "on boot" instead, which vendor_init can
+# always evaluate.
+#
 # Author: cristi, 2026-05-22.
 
-service nvt_touch_wake /system/bin/sh -c "echo 4 > /sys/class/graphics/fb0/blank; sleep 1; echo 0 > /sys/class/graphics/fb0/blank"
+service nvt_touch_wake /system/bin/sh -c "echo 4 > /sys/class/graphics/fb0/blank; sleep 1; echo 0 > /sys/class/graphics/fb0/blank; log -t nvt_touch_wake 'boot toggle fired'"
     class core
     user root
     group root
     oneshot
     seclabel u:r:recovery:s0
 
+service nvt_touch_wake_watch /system/bin/sh /vendor/etc/init/nvt_touch_wake_watch.sh
+    class core
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    # not oneshot: runs continuously so init respawns it if it ever dies
+
 on boot
     start nvt_touch_wake
+    start nvt_touch_wake_watch
 
-on property:twrp.gui_started=1
-    start nvt_touch_wake
