@@ -12,11 +12,19 @@ An unofficial OrangeFox Recovery device tree for the **Xiaomi Redmi Note 10 5G**
 
 ## 📱 Compatibility & Tested Devices
 
-This tree has been tested and verified on the following setup:
-
-| Device | Model | MIUI Version | Android | Kernel | Touch IC | Panel |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Redmi Note 10 5G** | `M2103K19C` | `V14.0.6.0.TKSMIXM` | 13 | `4.14.186-perf-g82b8a4552e62` | Novatek `NT36672C` (FW 0x12) | Tianma |
+| Features | Specifications |
+| :--- | :--- |
+| **Device** | Xiaomi Redmi Note 10 5G / POCO M3 Pro 5G |
+| **Codename** | `camellia` |
+| **SoC** | MediaTek MT6833 Dimensity 700 (7 nm) |
+| **CPU** | Octa-core (2x2.2 GHz Cortex-A76 & 6x2.0 GHz Cortex-A55) |
+| **GPU** | Mali-G57 MC2 |
+| **Display** | 6.5" IPS LCD, 90Hz (1080 x 2400 pixels) |
+| **Memory** | 4GB / 6GB / 8GB RAM |
+| **Storage** | 64GB / 128GB / 256GB (UFS 2.2) |
+| **Battery** | 5000 mAh (18W Fast Charging) |
+| **Touch IC** | Novatek `NT36672C` |
+| **Panel** | Tianma |
 
 > **Note:** This recovery image is highly likely to work on sibling "camellian" devices (Redmi Note 10T 5G, Redmi Note 11 SE, POCO M3 Pro 5G), provided the bootloader is unlocked.
 
@@ -73,14 +81,13 @@ lunch twrp_camellia-eng
 mka adbd bootimage recoveryimage
 
 ```
-## 🤝 Credits & Acknowledgments
+## 🤝 Credits
 
-A huge thank you to the following teams, developers, and contributors for their work, code, and support:
+Huge thanks to the developers and projects that made this possible:
 
-* **[TeamWin (TWRP)](https://github.com/TeamWin)** — For the foundational recovery source.
-* **[OrangeFox Recovery Project](https://gitlab.com/OrangeFox)** — For the amazing recovery platform and source code.
-* **[that1](https://github.com/that1)** — For contributions and support.
-* **[cd-Crypton](https://github.com/cd-Crypton)** — For development tools and base work.
-* **[azwhikaru](https://github.com/azwhikaru)** — For contributions and assistance.
-* **[cristidclxvi](https://github.com/cristidclxvi/device_xiaomi_camellia-fox)** — For the NVT touchscreen panel fixes in recovery.
-* **All Open-Source Contributors** — For every repository, helper script, and feedback utilized in bringing this project together.
+| Contributor / Project | Contribution |
+| :--- | :--- |
+| **[TWRP](https://github.com/TeamWin)** & **[OrangeFox](https://gitlab.com/OrangeFox)** | Base recovery source and platform |
+| **[cristidclxvi](https://github.com/cristidclxvi/device_xiaomi_camellia-fox)** | NVT touchscreen wake fixes |
+| **[cd-Crypton](https://github.com/cd-Crypton)** | Base work and development tools |
+| **[that1](https://github.com/that1)** & **[azwhikaru](https://github.com/azwhikaru)** | Contributions and assistance |
