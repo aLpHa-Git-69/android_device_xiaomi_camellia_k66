@@ -22,6 +22,20 @@ This tree has been tested and verified on the following setup:
 
 ---
 
+## 🐛 NVT Touchscreen Wake Fix Explained
+
+A common bug on `camellia` devices with Novatek (NVT) touch panels is that the **touchscreen stops responding after the screen turns off** (via screen timeout or pressing the power button) and turns back on in recovery.
+
+**The Cause:**
+When the screen blanks, the NVT driver drops into a `wakeup-gesture` suspend mode. In a normal system boot, waking the device fires the `fb_notifier`, which calls `nvt_ts_resume` and kicks the driver back to normal touch reporting. However, in TWRP/OrangeFox, the recovery UI handles screen dimming by turning off the backlight directly, without writing to the framebuffer (`/sys/class/graphics/fb0/blank`). Because the framebuffer status never changes to `1` (blank), the NVT driver remains stuck in gesture mode and no touch events reach the recovery UI.
+
+**The Solution:**
+This device tree utilizes a custom background daemon (`nvt_touch_wake_watch.sh`) that continuously monitors the screen's backlight brightness node (`/sys/class/leds/lcd-backlight/brightness`) instead of the framebuffer. 
+Whenever the script detects the screen waking up (brightness changing from `0` to `> 0`), it rapidly writes `4` then `0` to `fb0/blank`. This manually mimics the framebuffer toggle, successfully forcing the NVT driver to resume normal multi-touch reporting on every wake.
+*(Note: These services are initialized from the `on boot` trigger in `init.touchwake.rc` to bypass SELinux `vendor_init` property read denials).*
+
+---
+
 ## 🛠️ Automated Build (CI/CD)
 
 You no longer need to download the massive Android source tree to build this recovery. This repository uses **GitHub Actions** to automatically compile OrangeFox.
