@@ -12,14 +12,18 @@ sleep 2
 prev="$(cat "$BACKLIGHT" 2>/dev/null)"
 
 while true; do
-    sleep 0.5
+    # OPTIMIZATION: Polling interval accelerated to 0.1 seconds
+    sleep 0.1
     cur="$(cat "$BACKLIGHT" 2>/dev/null)"
     
     # Jika kecerahan sebelumnya 0 (mati) dan sekarang tidak 0 (nyala)
     if [ "$prev" = "0" ] && [ "$cur" != "0" ]; then
         log -t nvt_touch_wake "Screen woke (backlight > 0), re-kicking NVT driver"
         echo 4 > "$FB_BLANK"
-        sleep 0.2
+        
+        # OPTIMIZATION: Framebuffer execution delay accelerated to 0.05 seconds
+        sleep 0.05
+        
         echo 0 > "$FB_BLANK"
     fi
     prev="$cur"
