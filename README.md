@@ -40,7 +40,16 @@ When the screen blanks, the NVT driver drops into a `wakeup-gesture` suspend mod
 **The Solution:**
 This device tree utilizes a custom background daemon (`nvt_touch_wake_watch.sh`) that continuously monitors the screen's backlight brightness node (`/sys/class/leds/lcd-backlight/brightness`) instead of the framebuffer. 
 Whenever the script detects the screen waking up (brightness changing from `0` to `> 0`), it rapidly writes `4` then `0` to `fb0/blank`. This manually mimics the framebuffer toggle, successfully forcing the NVT driver to resume normal multi-touch reporting on every wake.
+
+**⚡ Responsiveness Optimization:**
+Initially, the polling method introduced a noticeable delay of a few seconds before the touch responded after waking. To eliminate this latency, the script has been optimized with aggressive polling intervals:
+*   **Polling Interval:** Reduced to `0.1s` (from `0.5s`) so the daemon detects the screen wake almost instantly.
+*   **Framebuffer Toggle Delay:** Reduced to `0.05s` (from `0.2s`) to speed up the `nvt_ts_resume` call without failing the driver hook.
+
+Since this daemon only runs in the recovery environment, the slight increase in CPU activity from aggressive polling does not negatively impact overall battery life or system performance.
+
 *(Note: These services are initialized from the `on boot` trigger in `init.touchwake.rc` to bypass SELinux `vendor_init` property read denials).*
+
 
 ---
 
