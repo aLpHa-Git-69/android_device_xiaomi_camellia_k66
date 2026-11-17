@@ -21,13 +21,13 @@ for setting in (
     if setting not in board:
         raise ValueError('missing boot configuration: ' + setting)
 if layout == 'vendor-boot-v3':
-    for setting in ('BOARD_BOOTIMG_HEADER_VERSION := 3',
+    for setting in ('BOARD_BOOT_HEADER_VERSION := 3',
                     'BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864',
                     'BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true'):
         if setting not in board:
             raise ValueError('missing vendor_boot configuration: ' + setting)
 else:
-    if 'BOARD_USES_RECOVERY_AS_BOOT := true' not in board or 'BOARD_BOOTIMG_HEADER_VERSION := 2' not in board:
+    if 'BOARD_USES_RECOVERY_AS_BOOT := true' not in board or 'BOARD_BOOT_HEADER_VERSION := 2' not in board:
         raise ValueError('invalid boot-v2 fallback configuration')
 if 'recovery/root,recovery/root' not in (tree / 'device.mk').read_text():
     raise ValueError('device ramdisk is not included in the product')
