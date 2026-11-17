@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Matches the device-tested boot-v2 layout.
+CAMELLIA_RECOVERY_LAYOUT := boot-v2
+BOARD_USES_RECOVERY_AS_BOOT := true
+BOARD_BOOTIMG_HEADER_VERSION := 2
+BOARD_KERNEL_PAGESIZE := 2048
+include $(DEVICE_PATH)/profiles/common.mk

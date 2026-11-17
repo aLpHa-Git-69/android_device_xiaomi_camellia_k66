@@ -4,6 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+LOCAL_PATH := device/xiaomi/camellia
+
+# Include the device configuration and matching kernel modules in the ramdisk.
+# Android first-stage init loads /lib/modules before accessing the UFS device.
+PRODUCT_COPY_FILES += \
+    $(call find-copy-subdir-files,*,$(LOCAL_PATH)/recovery/root,recovery/root)
+
 # Enable updating of APEXes
 $(call inherit-product, $(SRC_TARGET_DIR)/product/updatable_apex.mk)
 

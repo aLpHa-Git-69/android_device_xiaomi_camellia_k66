@@ -1,102 +1,113 @@
-# 🦊 OrangeFox Recovery for Xiaomi Redmi Note 10 5G (`camellia`)
+# Camellia OrangeFox recovery tree — Linux 6.6
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/rwxrx-rx/fox-twrp-device-camellia/build.yaml?branch=fox_12.1&label=OrangeFox%20Build&style=for-the-badge&color=FF7F00)](https://github.com/rwxrx-rx/fox-twrp-device-camellia/actions)
-![Android Version](https://img.shields.io/badge/Android-13-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![OrangeFox](https://img.shields.io/badge/OrangeFox-12.1-FF7F00?style=for-the-badge)
+Repository: https://github.com/aLpHa-Git-69/android_device_xiaomi_camellia_k66
 
----
+This tree ports the supplied **OrangeFox R12.0_1 / fox_12.1** device configuration
+to the device-tested Camellia 6.6 kernel. Place it at `device/xiaomi/camellia`
+inside a synced OrangeFox `fox_12.1` checkout.
 
-An unofficial OrangeFox Recovery device tree for the **Xiaomi Redmi Note 10 5G** (`camellia`, MediaTek MT6833), featuring a dedicated fix to get the NVT touchscreen working properly in recovery mode.
+## Recovery layouts
 
----
+The selected default is **experimental `vendor-boot-v3`**:
 
-## 📱 Compatibility & Tested Devices
+- `boot.img`: kernel and generic first-stage ramdisk, boot header v3.
+- `vendor_boot.img`: recovery/vendor ramdisk, the matching modules and DTB,
+  vendor-boot header v3.
+- The current working boot-v2 image does **not** use this vendor-boot layout;
+  migrating requires the **matching image pair**.
+- This v3 layout uses a complete vendor ramdisk, not v4 recovery fragments.
+  The OrangeFox v4-fragment ZIP installer is disabled for this profile.
 
-| Features | Specifications |
-| :--- | :--- |
-| **Device** | Xiaomi Redmi Note 10 5G / POCO M3 Pro 5G |
-| **Codename** | `camellia` |
-| **SoC** | MediaTek MT6833 Dimensity 700 (7 nm) |
-| **CPU** | Octa-core (2x2.2 GHz Cortex-A76 & 6x2.0 GHz Cortex-A55) |
-| **GPU** | Mali-G57 MC2 |
-| **Display** | 6.5" IPS LCD, 90Hz (1080 x 2400 pixels) |
-| **Memory** | 4GB / 6GB / 8GB RAM |
-| **Storage** | 64GB / 128GB / 256GB (UFS 2.2) |
-| **Battery** | 5000 mAh (18W Fast Charging) |
-| **Touch IC** | Novatek `NT36672C` |
-| **Panel** | Tianma |
+Both physical `vendor_boot` slots were found to be 64 MiB with empty headers.
+The bootloader contains vendor-boot decoder code. These facts support bring-up,
+but **on-device vendor-boot migration is not yet validated**.
 
-> **Note:** This recovery image is highly likely to work on sibling "camellian" devices (Redmi Note 10T 5G, Redmi Note 11 SE, POCO M3 Pro 5G), provided the bootloader is unlocked.
+The **boot-v2 fallback** matches the proven kernel boot layout and stores the
+recovery ramdisk in the boot partition:
 
----
-
-## 🐛 NVT Touchscreen Wake Fix Explained
-
-A common bug on `camellia` devices with Novatek (NVT) touch panels is that the **touchscreen stops responding after the screen turns off** (via screen timeout or pressing the power button) and turns back on in recovery.
-
-**The Cause:**
-When the screen blanks, the NVT driver drops into a `wakeup-gesture` suspend mode. In a normal system boot, waking the device fires the `fb_notifier`, which calls `nvt_ts_resume` and kicks the driver back to normal touch reporting. However, in TWRP/OrangeFox, the recovery UI handles screen dimming by turning off the backlight directly, without writing to the framebuffer (`/sys/class/graphics/fb0/blank`). Because the framebuffer status never changes to `1` (blank), the NVT driver remains stuck in gesture mode and no touch events reach the recovery UI.
-
-**The Solution:**
-This device tree utilizes a custom background daemon (`nvt_touch_wake_watch.sh`) that continuously monitors the screen's backlight brightness node (`/sys/class/leds/lcd-backlight/brightness`) instead of the framebuffer. 
-Whenever the script detects the screen waking up (brightness changing from `0` to `> 0`), it rapidly writes `4` then `0` to `fb0/blank`. This manually mimics the framebuffer toggle, successfully forcing the NVT driver to resume normal multi-touch reporting on every wake.
-
-**⚡ Responsiveness Optimization:**
-Initially, the polling method introduced a noticeable delay of a few seconds before the touch responded after waking. To eliminate this latency, the script has been optimized with aggressive polling intervals:
-*   **Polling Interval:** Reduced to `0.1s` (from `0.5s`) so the daemon detects the screen wake almost instantly.
-*   **Framebuffer Toggle Delay:** Reduced to `0.05s` (from `0.2s`) to speed up the `nvt_ts_resume` call without failing the driver hook.
-
-Since this daemon only runs in the recovery environment, the slight increase in CPU activity from aggressive polling does not negatively impact overall battery life or system performance.
-
-*(Note: These services are initialized from the `on boot` trigger in `init.touchwake.rc` to bypass SELinux `vendor_init` property read denials).*
-
-
----
-
-## 🛠️ Automated Build (CI/CD)
-
-You no longer need to download the massive Android source tree to build this recovery. This repository uses **GitHub Actions** to automatically compile OrangeFox.
-
-1. Go to the **[Actions](../../actions)** tab in this repository.
-2. Select **OrangeFox CI Build** on the left sidebar.
-3. Click **Run workflow** -> **Run**.
-4. Wait for the build to complete (usually takes ~30-45 minutes).
-5. Download your compiled `OrangeFox-camellia.img` from the **Artifacts** section at the bottom of the build summary.
-
----
-
-## 💻 Manual Local Build
-
-If you prefer to build it locally on your own machine, follow these steps:
-
-```bash
-# 1. Setup working directory
-mkdir OFRP_12.1 && cd OFRP_12.1
-
-# 2. Sync OrangeFox Source
-git clone [https://gitlab.com/OrangeFox/sync.git](https://gitlab.com/OrangeFox/sync.git)
-bash sync/orangefox_sync.sh --branch 12.1 --path "$PWD"
-
-# 3. Clone this device tree
-git clone -b fox_12.1 [https://github.com/cristidclxvi/device_xiaomi_camellia-fox.git](https://github.com/cristidclxvi/device_xiaomi_camellia-fox.git) device/xiaomi/camellia
-
-# 4. Initialize build environment
-. build/envsetup.sh
-export ALLOW_MISSING_DEPENDENCIES=true
-export FOX_BUILD_DEVICE=camellia
-
-# 5. Build
-lunch twrp_camellia-eng
-mka adbd bootimage recoveryimage
-
+```sh
+python3 tools/select-layout.py boot-v2
+python3 tools/validate-tree.py
 ```
-## 🤝 Credits
 
-Huge thanks to the developers and projects that made this possible:
+To select the requested vendor-boot profile:
 
-| Contributor / Project | Contribution |
-| :--- | :--- |
-| **[TWRP](https://github.com/TeamWin)** & **[OrangeFox](https://gitlab.com/OrangeFox)** | Base recovery source and platform |
-| **[cristidclxvi](https://github.com/cristidclxvi/device_xiaomi_camellia-fox)** | NVT touchscreen wake fixes |
-| **[cd-Crypton](https://github.com/cd-Crypton)** | Base work and development tools |
-| **[that1](https://github.com/that1)** & **[azwhikaru](https://github.com/azwhikaru)** | Contributions and assistance |
+```sh
+python3 tools/select-layout.py vendor-boot-v3
+python3 tools/validate-tree.py
+```
+
+## Kernel and early module loading
+
+Included prebuilts are pinned to kernel source commit
+`907092a3926ada9fe54b90e66e82632519251c84`:
+
+- Kernel `6.6.30-4k-g907092a3926a-dirty` — boots and speaker output works in Android.
+- The merged Camellia DTB.
+- All **272** matching modules, including UFS, pinctrl, display, Mali GPU,
+  touchscreen, USB and TEE drivers.
+- `modules.load` and `modules.load.recovery` in `/lib/modules`, for Android
+  first-stage init to load before partition mounting.
+- Matching touch firmware and the original MediaTek recovery HAL configuration.
+
+`prebuilt/kernel66.json` records source provenance and SHA-256 hashes.
+`tools/validate-tree.py` checks the hashes, ELF module versions and boot layout.
+
+To refresh the same pinned payload from the successful kernel build:
+
+```sh
+gh run download 43736910427 --repo aLpHa-Git-69/kernel_xiaomi_mt6833_66 \
+  --name complete-kernel-sukisu --dir kernel66-payload
+python3 tools/import-kernel66.py kernel66-payload
+```
+
+## Source build
+
+Use a Linux build host with enough space for OrangeFox `fox_12.1` (about 45 GiB
+for the synced source, plus build output). Sync with OrangeFox's official script:
+
+```sh
+git clone https://gitlab.com/OrangeFox/sync.git
+bash sync/orangefox_sync.sh --branch 12.1 --path /absolute/path/to/OrangeFox
+# Place this tree at /absolute/path/to/OrangeFox/device/xiaomi/camellia
+bash device/xiaomi/camellia/tools/build-recovery.sh /absolute/path/to/OrangeFox
+```
+
+The vendor-boot profile builds `adbd`, `bootimage` and `vendorbootimage`.
+The boot-v2 profile builds `adbd` and `bootimage`. A GitHub Actions build workflow
+is included, with the same two selectable layouts and no automatic release.
+
+## Donor assembly check
+
+`tools/create-test-images.py` can assemble format-checked test images using the
+supplied OrangeFox ZIP's userspace and this tree's kernel/modules. It requires
+AOSP `mkbootimg.py` and a host-compatible Magiskboot (the supplied ARM64 binary
+works in Termux). This is **not a full OrangeFox source compilation**, and it
+does not establish recovery boot, touch, MTP or decryption functionality.
+These donor-assembled test images have no added AVB signature/footer; use the
+source-build workflow for the normal AVB-enabled image production path.
+
+For device bring-up, keep the known-working boot image available. Test the
+matching boot/vendor-boot pair together on the intended slot; a standalone
+vendor-boot flash cannot migrate the current boot-v2 boot chain. Collect
+`/tmp/recovery.log`, logcat and dmesg after a recovery test.
+
+## Provenance
+
+- Device-tree base: `PallzNtDv/fox-twrp-device-camellia`, branch `fox_12.1`,
+  commit `d75147f08bad1fcd8b0351e2de4129640cdd7425`.
+- Donor ZIP SHA-256:
+`599d4e395b61bd524811f3afc988a47579ed115ed8cd2db2eca7f9a9d2c5a6b9`.
+- Linux kernel/modules: GPL-2.0; source is linked in `prebuilt/kernel66.json`.
+- Original recovery configuration credits: OrangeFox, TeamWin, cristidclxvi,
+  cd-Crypton, that1 and azwhikaru. Original file license notices are retained.
+
+## Export the tree
+
+```sh
+python3 tools/validate-tree.py
+python3 tools/export-tree.py camellia-orangefox-kernel66-tree.zip
+```
+
+The archive contains `device/xiaomi/camellia/` with all configuration and
+prebuilt files; `.git` and temporary image outputs are excluded.

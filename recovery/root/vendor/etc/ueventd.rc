@@ -94,6 +94,9 @@
 
 # DRM node
 /dev/dri/card0            0660   system     system
+/dev/dri/renderD*         0660   system     graphics
+/dev/graphics/fb0         0660   root       graphics
+/dev/dma_heap/*           0660   system     graphics
 
 # add the read write right of ttyUSB*
 /dev/bus/usb/*     	  0660   root       usb

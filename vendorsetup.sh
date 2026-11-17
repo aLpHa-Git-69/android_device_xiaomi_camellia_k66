@@ -54,8 +54,19 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export OF_FL_PATH1="/system/flashlight"
 
 	# R11.1 Settings
-	export FOX_MAINTAINER_PATCH_VERSION=1
-	export OF_MAINTAINER="Sabrina"
+	export FOX_MAINTAINER_PATCH_VERSION="66"
+	export OF_MAINTAINER="camellia kernel 6.6 port"
+	export FOX_VARIANT="K66"
+	export OF_FORCE_PREBUILT_KERNEL=1
+	export OF_DEFAULT_KEYMASTER_VERSION=4.1
+	# The experimental v3 migration is installed as a matched image pair.
+	# OrangeFox's recovery-fragment installer is for header v4, so disable zip
+	# generation here instead of emitting an installer for the wrong layout.
+	if grep -q 'vendor-boot-v3.mk' "$(dirname "${BASH_SOURCE[0]}")/recovery-layout.mk"; then
+		export FOX_DISABLE_UPDATEZIP=1
+		export FOX_INSTALLER_VENDOR_BOOT_RAMDISK_INSTALL=0
+		export FOX_RECOVERY_VENDOR_BOOT_PARTITION="/dev/block/by-name/vendor_boot"
+	fi
 
 	# Magisk
 	function download_magisk(){
