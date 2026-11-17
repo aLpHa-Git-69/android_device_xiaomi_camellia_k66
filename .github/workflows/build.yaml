@@ -10,9 +10,17 @@ on:
         options:
           - vendor-boot-v3
           - boot-v2
+  push:
+    branches: [kernel-6.6]
+    paths:
+      - '.github/workflows/build.yaml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: recovery-${{ github.ref }}-${{ inputs.layout || 'vendor-boot-v3' }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -36,7 +44,7 @@ jobs:
       - name: Validate the selected tree
         working-directory: device-tree
         env:
-          LAYOUT: ${{ inputs.layout }}
+          LAYOUT: ${{ inputs.layout || 'vendor-boot-v3' }}
         run: |
           python3 tools/select-layout.py "$LAYOUT"
           python3 tools/validate-tree.py
@@ -75,7 +83,7 @@ jobs:
       - name: Upload images
         uses: actions/upload-artifact@v4
         with:
-          name: camellia-ofox-k66-${{ inputs.layout }}
+          name: camellia-ofox-k66-${{ inputs.layout || 'vendor-boot-v3' }}
           path: |
             OrangeFox/out/target/product/camellia/boot.img
             OrangeFox/out/target/product/camellia/vendor_boot.img
