@@ -14,6 +14,9 @@ $(call inherit-product, vendor/twrp/config/common.mk)
 # Inherit from everpal device
 $(call inherit-product, device/xiaomi/camellia/device.mk)
 
+# Generate the recovery staging tree even when it is placed in vendor_boot.
+PRODUCT_BUILD_RECOVERY_IMAGE := true
+
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := camellia
 PRODUCT_NAME := twrp_camellia

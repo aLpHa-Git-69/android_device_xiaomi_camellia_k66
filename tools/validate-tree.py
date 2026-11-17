@@ -31,4 +31,6 @@ else:
         raise ValueError('invalid boot-v2 fallback configuration')
 if 'recovery/root,recovery/root' not in (tree / 'device.mk').read_text():
     raise ValueError('device ramdisk is not included in the product')
+if 'PRODUCT_BUILD_RECOVERY_IMAGE := true' not in (tree / 'twrp_camellia.mk').read_text():
+    raise ValueError('recovery resource generation is not enabled')
 print('Boot layout and ramdisk copy configuration verified:', layout)

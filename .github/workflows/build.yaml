@@ -80,6 +80,10 @@ jobs:
           set -o pipefail
           bash OrangeFox/device/xiaomi/camellia/tools/build-recovery.sh "$GITHUB_WORKSPACE/OrangeFox" \
             2>&1 | tee recovery-build.log
+      - name: Verify compiled recovery contents
+        run: |
+          python3 OrangeFox/device/xiaomi/camellia/tools/check-built-images.py \
+            OrangeFox/out/target/product/camellia
       - name: Upload images
         uses: actions/upload-artifact@v4
         with:
@@ -89,6 +93,8 @@ jobs:
             OrangeFox/out/target/product/camellia/vendor_boot.img
             OrangeFox/out/target/product/camellia/OrangeFox*.img
             OrangeFox/out/target/product/camellia/OrangeFox*.zip
+            OrangeFox/out/target/product/camellia/*.img.sha256
+            OrangeFox/out/target/product/camellia/recovery-build-manifest.json
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
