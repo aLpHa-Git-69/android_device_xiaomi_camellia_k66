@@ -1,0 +1,6 @@
+{
+  "donor_zip_sha256": "599d4e395b61bd524811f3afc988a47579ed115ed8cd2db2eca7f9a9d2c5a6b9",
+  "ramdisk_sha256": "fcf94146aee04cc9b86c076824e7922fab8b8d3bda3cd690f2b5b9f7673564d0",
+  "ramdisk_size": 37512571,
+  "recovery_codebase": "OrangeFox fox_12.1, supplied R12.0_1 build"
+}

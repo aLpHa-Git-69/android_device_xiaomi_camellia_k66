@@ -1,0 +1,45 @@
+name: Repack Camellia recovery ramdisk
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Run containing the compiled boot-v3 and vendor_boot images
+        type: string
+        default: '44107687048'
+  push:
+    branches: [kernel-6.6]
+    paths:
+      - '.github/workflows/manual-repack.yaml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  repack:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: camellia-ofox-k66-vendor-boot-v3
+          path: compiled
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.source_run || '44107687048' }}
+      - name: Get AVB image tool
+        run: git clone --depth 1 --branch android12L-release https://android.googlesource.com/platform/external/avb avb
+      - name: Manually add recovery ramdisk and validate images
+        run: |
+          python3 tools/manual-repack.py compiled dist --avbtool avb/avbtool.py
+          python3 tools/check-built-images.py dist --assembly manual-repack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: camellia-ofox-k66-manual-repack
+          path: dist/*
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14

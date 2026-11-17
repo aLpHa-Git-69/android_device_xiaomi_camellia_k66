@@ -14,6 +14,11 @@ def cpio_entries(data):
     position = 0
     result = {}
     while position + 110 <= len(data):
+        # Linux initramfs supports multiple padded cpio/gzip members.
+        while position < len(data) and data[position] == 0:
+            position += 1
+        if position + 110 > len(data):
+            break
         header = data[position:position + 110]
         if header[:6] not in (b'070701', b'070702'):
             raise ValueError('invalid recovery cpio header')
@@ -25,7 +30,7 @@ def cpio_entries(data):
             raise ValueError('truncated recovery cpio entry')
         position = (start + size + 3) // 4 * 4
         if name == 'TRAILER!!!':
-            break
+            continue
         result[name.removeprefix('./')] = data[start:start + size]
     return result
 
@@ -51,6 +56,7 @@ def recovery_contents(ramdisk, tree):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('image_directory', type=pathlib.Path)
+    parser.add_argument('--assembly', choices=('source-build', 'manual-repack'), default='source-build')
     args = parser.parse_args()
     tree = pathlib.Path(__file__).resolve().parents[1]
     manifest = verify_tree(tree)
@@ -92,7 +98,8 @@ def main():
     else:
         raise ValueError('unsupported compiled boot header version')
     report = {
-        'source_build': True,
+        'source_build': args.assembly == 'source-build',
+        'assembly': args.assembly,
         'device_validated': False,
         'kernel_release': manifest['build_info']['kernel_release'],
         'module_count': MODULE_COUNT,

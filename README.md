@@ -63,6 +63,27 @@ python3 tools/import-kernel66.py kernel66-payload
 
 ## Source build
 
+### Fast ramdisk repack
+
+`.github/workflows/manual-repack.yaml` reuses the compiled boot-v3 image and
+manually adds the supplied OrangeFox ramdisk plus this tree's matching modules
+to `vendor_boot.img`. It does not repeat the OrangeFox source sync/compilation.
+The image manifest explicitly records this as a donor-ramdisk manual repack.
+Both image contents and the regenerated vendor-boot AVB hash footer are checked.
+
+```sh
+python3 tools/import-donor-ramdisk.py /path/to/OrangeFox-R12.0_1-Unofficial-camellia.zip
+python3 tools/manual-repack.py /path/to/compiled-images dist --avbtool /path/to/avbtool.py
+python3 tools/check-built-images.py dist --assembly manual-repack
+```
+
+### Full source compilation
+
+The full-source header-v3 job currently passes compilation but produces an
+empty vendor ramdisk in its automatic packaging path. Its content check rejects
+that output. Use the fast manual-repack job for the next device test; its
+manifest records the supplied OrangeFox userspace donor explicitly.
+
 Use a Linux build host with enough space for OrangeFox `fox_12.1` (about 45 GiB
 for the synced source, plus build output). Sync with OrangeFox's official script:
 
