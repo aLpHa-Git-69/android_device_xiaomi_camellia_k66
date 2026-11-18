@@ -22,6 +22,15 @@ Both physical `vendor_boot` slots were found to be 64 MiB with empty headers.
 The bootloader contains vendor-boot decoder code. These facts support bring-up,
 but **on-device vendor-boot migration is not yet validated**.
 
+The first image-pair device test stopped in LK with `vendor_boot image is NULL`
+and `invalid vendorboot image header v3`; the bootloader switched back to B.
+The stock slot-A root vbmeta chains the stock boot key and has no vendor-boot
+descriptor. `tools/make-test-vbmeta.py` prepares a separate **slot-A-only test**
+root vbmeta that preserves system/vendor/mi_ext descriptors, verification flags
+and rollback index, updates the boot-chain key to the compiled image's key,
+and adds the exact vendor-boot hash descriptor. It uses an AOSP test signing
+key; it is not stock-signed and this follow-up device test is unvalidated.
+
 The **boot-v2 fallback** matches the proven kernel boot layout and stores the
 recovery ramdisk in the boot partition:
 
